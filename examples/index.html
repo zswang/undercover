@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset=utf-8 />
+    <meta name="author" content="http//weibo.com/zswang" />
+    <title>Demo</title>
+    <script src="zepto.min.js"></script>
+    <script src="../src/main.js"></script>
+</head>
+<body>
+    <select id="playerCount">
+    	<option value="4">4人</option>
+    	<option value="5">5人</option>
+    	<option value="6">6人</option>
+    	<option value="7">7人</option>
+    	<option value="8">8人</option>
+    </select>
+    <select id="undercoverCount">
+    	<option value="1">1人</option>
+    	<option value="2">2人</option>
+    </select>
+    <select id="blankCount">
+    	<option value="0">0人</option>
+    	<option value="1">1人</option>
+    	<option value="2">2人</option>
+    </select>
+	<button id="replay">replay</button>
+	<div id="players"></div>
+	<script>
+$(function() {
+    /**
+     * 格式化函数
+     * @param {String} template 模板
+     * @param {Object} json 数据项
+     */
+    function format(template, json){
+        return template.replace(/#\{(.*?)\}/g, function(all, key){
+            return json && (key in json) ? json[key] : "";
+        });
+    }
+	$('#players button').live("click", function() {
+		$(document).trigger('kill', $(this).data('index'));
+	});
+
+	$(document).on("stateChange", function(e, data) {
+		var html = '<ul>';
+
+		for (var i = 0; i < data.players.length; i++) {
+			var player = data.players[i];
+			html += format('<li id="kill#{index}"><em>index:</em>#{index}<em>key:</em>#{key}#{button}</li>', {
+				index: player.index,
+				key: player.key,
+				button: player.killed ?
+					"<span>killed</span>" : (data.state == "gameover" ? "" : format("<button data-index=#{index}>kill</button>", player))
+			});
+		}
+	
+		html += '</ul>';
+		html += format('<em>message:</em>#{message}<em>firstPlayer:</em>#{firstPlayer}', data);
+		console.log(html);
+		$('#players').html(html);
+		console.log("stateChange %o", data);
+	});
+	
+	$('#replay').on('click', function() {
+		$(document).trigger('replay', {
+		    playerCount: $('#playerCount').val(), // 玩家数
+		    undercoverCount: $('#undercoverCount').val(), // 卧底数
+		    blankCount: $('#blankCount').val() // 白板数
+		});
+	});
+});
+	</script>
+</body>
+</html>
