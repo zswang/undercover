@@ -8,7 +8,7 @@
     <script src="jquery.qrcode.min.js"></script>
     <script src="../src/main.js"></script>
     <style>
-.first{
+.active{
 	color: red;
 }
     </style>
@@ -35,6 +35,8 @@
 	<div id="qrcode"></div>
 	<script>
 $(function() {
+	var currentIndex = 0;
+	var playerCount = 0;
     /**
      * 格式化函数
      * @param {String} template 模板
@@ -45,7 +47,7 @@ $(function() {
             return json && (key in json) ? json[key] : "";
         });
     }
-	$('#players button').live("click", function() {
+	$('#players li button').live("click", function() {
 		$(document).trigger('kill', $(this).data('index'));
 	});
 	$('#players li').live('mousedown', function() {
@@ -54,14 +56,26 @@ $(function() {
             text: $(this).data('url')
         });
 	});
+	$('#next').live('click', function() {
+		currentIndex = (currentIndex + 1) % playerCount;
+		$('#players li').removeClass('active');
+		$('#players #kill' + currentIndex).addClass('active');
+	});
 
 	
 	$(document).on("next", function(e, index) {
-		$('#players li').removeClass('firet');
-		$('#players #' + index).addClass('firet');
+		if (currentIndex != index) {
+			return;
+		}
+		currentIndex = (currentIndex + 1) % playerCount;
+		$('#players li').removeClass('active');
+		$('#players #kill' + currentIndex).addClass('active');
 	});
 
 	$(document).on("stateChange", function(e, data) {
+		currentIndex = data.firstPlayer;
+		playerCount = data.players.length;
+
 		var html = '<ul>';
 
 		for (var i = 0; i < data.players.length; i++) {
@@ -73,13 +87,14 @@ $(function() {
 				key: player.key,
 				button: player.killed ?
 					"<span>killed</span>" : (data.state == "gameover" ? "" : format("<button data-index=#{index}>kill</button>", player)),
-				className: data.firstPlayer == player.index ? 'first' : '',
+				className: data.firstPlayer == player.index ? 'active' : '',
 				link: format('<a href="#{url}" target="_blank">#{url}</a>', player)
 			});
 		}
 	
 		html += '</ul>';
 		html += format('<em>message:</em>#{message}<em>firstPlayer:</em>#{firstPlayer}', data);
+		html += '<button id="next">next</button>';
 		console.log(html);
 		$('#players').html(html);
 		console.log("stateChange %o", data);
