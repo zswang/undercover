@@ -5,7 +5,13 @@
     <meta name="author" content="http//weibo.com/zswang" />
     <title>Demo</title>
     <script src="zepto.min.js"></script>
+    <script src="jquery.qrcode.min.js"></script>
     <script src="../src/main.js"></script>
+    <style>
+.first{
+	color: red;
+}
+    </style>
 </head>
 <body>
     <select id="playerCount">
@@ -26,6 +32,7 @@
     </select>
 	<button id="replay">replay</button>
 	<div id="players"></div>
+	<div id="qrcode"></div>
 	<script>
 $(function() {
     /**
@@ -33,13 +40,24 @@ $(function() {
      * @param {String} template 模板
      * @param {Object} json 数据项
      */
-    function format(template, json){
-        return template.replace(/#\{(.*?)\}/g, function(all, key){
+    function format(template, json) {
+        return template.replace(/#\{(.*?)\}/g, function(all, key) {
             return json && (key in json) ? json[key] : "";
         });
     }
 	$('#players button').live("click", function() {
 		$(document).trigger('kill', $(this).data('index'));
+	});
+	$('#players li').live('mousedown', function() {
+        $('#qrcode').html('').qrcode({
+            render: "canvas",
+            text: $(this).data('url')
+        });
+	});
+
+	
+	$(document).on("next", function(e, data) {
+		
 	});
 
 	$(document).on("stateChange", function(e, data) {
@@ -47,11 +65,15 @@ $(function() {
 
 		for (var i = 0; i < data.players.length; i++) {
 			var player = data.players[i];
-			html += format('<li id="kill#{index}"><em>index:</em>#{index}<em>key:</em>#{key}#{button}</li>', {
+			html += format(
+				'<li id="kill#{index}" class="#{className}" data-url="#{url}"><em>index:</em>#{index}<em>key:</em>#{key}#{button}#{link}</li>', {
+				url: player.url,
 				index: player.index,
 				key: player.key,
 				button: player.killed ?
-					"<span>killed</span>" : (data.state == "gameover" ? "" : format("<button data-index=#{index}>kill</button>", player))
+					"<span>killed</span>" : (data.state == "gameover" ? "" : format("<button data-index=#{index}>kill</button>", player)),
+				className: data.firstPlayer == player.index ? 'first' : '',
+				link: format('<a href="#{url}" target="_blank">#{url}</a>', player)
 			});
 		}
 	
@@ -61,7 +83,7 @@ $(function() {
 		$('#players').html(html);
 		console.log("stateChange %o", data);
 	});
-	
+
 	$('#replay').on('click', function() {
 		$(document).trigger('replay', {
 		    playerCount: $('#playerCount').val(), // 玩家数
