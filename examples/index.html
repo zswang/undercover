@@ -50,16 +50,14 @@ $(function() {
 	$('#players li button').live("click", function() {
 		$(document).trigger('kill', $(this).data('index'));
 	});
-	$('#players li').live('mousedown', function() {
-        $('#qrcode').html('').qrcode({
-            render: "canvas",
-            text: $(this).data('url')
-        });
-	});
 	$('#next').live('click', function() {
 		currentIndex = (currentIndex + 1) % playerCount;
 		$('#players li').removeClass('active');
 		$('#players #kill' + currentIndex).addClass('active');
+        $('#qrcode').html('').qrcode({
+            render: "canvas",
+            text: $('#players #kill' + currentIndex).data('url')
+        });
 	});
 
 	
@@ -70,6 +68,10 @@ $(function() {
 		currentIndex = (currentIndex + 1) % playerCount;
 		$('#players li').removeClass('active');
 		$('#players #kill' + currentIndex).addClass('active');
+        $('#qrcode').html('').qrcode({
+            render: "canvas",
+            text: $('#players #kill' + currentIndex).data('url')
+        });
 	});
 
 	$(document).on("stateChange", function(e, data) {
@@ -97,6 +99,11 @@ $(function() {
 		html += '<button id="next">next</button>';
 		console.log(html);
 		$('#players').html(html);
+		$('#players #kill' + currentIndex).addClass('active');
+        $('#qrcode').html('').qrcode({
+            render: "canvas",
+            text: $('#players #kill' + currentIndex).data('url')
+        });
 		console.log("stateChange %o", data);
 	});
 
